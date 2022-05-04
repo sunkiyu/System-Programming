@@ -1,6 +1,6 @@
 # Memory Order & atomic
 
-[참조](https://modoocode.com/271)
+[참조 : 씹어먹는 C\+\+ - \<15 - 3. C\+\+ memory order 와 atomic 객체\>](https://modoocode.com/271)
 
 ## Memory는 느리다.
 * CPU와 RAM은 물리적으로 떨어짐.   
