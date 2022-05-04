@@ -128,6 +128,99 @@ is_ready.store(true, std::memory_order_release);
 * 우리가 atomic 객체를 사용할 때, memory_order 를 지정해주지 않는다면 디폴트로 memory_order_seq_cst 가 지정.   
 * counter ++ 은 사실 counter.fetch_add(1, memory_order_seq_cst) 와 동일한 연산.
 
+```cpp
+std::atomic<bool> x(false);
+std::atomic<bool> y(false);
+std::atomic<int> z(0);
+
+void write_x() { x.store(true, std::memory_order_release); }
+
+void write_y() { y.store(true, std::memory_order_release); }
+
+void read_x_then_y() {
+  while (!x.load(std::memory_order_acquire)) {
+  }
+  if (y.load(std::memory_order_acquire)) {
+    ++z;
+  }
+}
+
+void read_y_then_x() {
+  while (!y.load(std::memory_order_acquire)) {
+  }
+  if (x.load(std::memory_order_acquire)) {
+    ++z;
+  }
+}
+
+int main() {
+  thread a(write_x);
+  thread b(write_y);
+  thread c(read_x_then_y);
+  thread d(read_y_then_x);
+  a.join();
+  b.join();
+  c.join();
+  d.join();
+  std::cout << "z : " << z << std::endl;
+}
+```
+* 위 예제에서 x,y가 모두 true가 되어야 모든 스레드가 종료되어 z가 찍힌다.      
+* x true가 되어 while 문을 빠져나왔을 때 y가 꼭 1이 아닐 수 있다.      
+* y true가 되어 while 문을 빠져나왔을 때 x가 꼭 1이 아닐 수 있다.   
+* 따라서 z값은 0,1,2 모두가 나올 수 있다.    
+
+```cpp
+#include <atomic>
+#include <iostream>
+#include <thread>
+using std::memory_order_seq_cst;
+using std::thread;
+
+std::atomic<bool> x(false);
+std::atomic<bool> y(false);
+std::atomic<int> z(0);
+
+void write_x() { x.store(true, memory_order_seq_cst); }
+
+void write_y() { y.store(true, memory_order_seq_cst); }
+
+void read_x_then_y() {
+  while (!x.load(memory_order_seq_cst)) {
+  }
+  if (y.load(memory_order_seq_cst)) {
+    ++z;
+  }
+}
+
+void read_y_then_x() {
+  while (!y.load(memory_order_seq_cst)) {
+  }
+  if (x.load(memory_order_seq_cst)) {
+    ++z;
+  }
+}
+
+int main() {
+  thread a(write_x);
+  thread b(write_y);
+  thread c(read_x_then_y);
+  thread d(read_y_then_x);
+  a.join();
+  b.join();
+  c.join();
+  d.join();
+  std::cout << "z : " << z << std::endl;
+}
+```
+* 위 예제에서 x,y가 모두 true가 되어야 모든 스레드가 종료되어 z가 찍힌다.      
+* x true 가 되면 이 후 모든 스레드가 읽을 때 x == true 임을 보장.      
+* y true 가 되면 이 후 모든 스레드가 읽을 때 y == true 임을 보장.   
+* x가 true가 된 시점에 y도 true라면 두 함수의 if문이 모두 실행 되므로 2가 나올 수 있다.  
+* 따라서 z값은 1,2 가 나올 수 있다. 0은 나올 수 없다 왜냐? 모든 스레드가 종료되었다는 것은 x,y 가 모두 true 가 되었다는 뜻인데    
+* 설령 x가 true 가 된 시점에 y가 false 였어도 어쨌든 추후에 y가 true 가 되어(스레드가 모두 종료하기 위해) while문을 빠져나왔을 때 x가 1을 보장하므로 if문에서 무조건 z++가 된다.   
+* 설령 y가 true 가 된 시점에 x가 false 였어도 어쨌든 추후에 x가 true 가 되어(스레드가 모두 종료하기 위해) while문을 빠져나왔을 때 y가 1을 보장하므로 if문에서 무조건 z++가 된다.     
+
 ## memory_order_seq_cst 는 비싼 연산!
 * 인텔 혹은 AMD 의 x86(-64) CPU 의 경우에는 사실 거의 순차적 일관성이 보장되서 memory_order_seq_cst 를 강제하더라도 그 차이가 크지 않다.   
 * ARM 계열의 CPU 와 같은 경우 순차적 일관성을 보장하기 위해서는 CPU 의 동기화 비용이 매우 크므로 꼭 필요할 경우만 사용!   
