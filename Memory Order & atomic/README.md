@@ -1,5 +1,7 @@
 # Memory Order & atomic
 
+[출처](https://modoocode.com/271)
+
 ## Memory는 느리다.
 * CPU와 RAM은 물리적으로 떨어짐.   
 * CPU가 RAM에서 데이터를 읽어오기 위해서는 시간이 오래걸림.   
