@@ -101,6 +101,7 @@ std::cout << "Data : " << *data << std::endl; //(4)
 *data = 10; //(5)
 is_ready->store(true, std::memory_order_release); //(6)
 //memory_order_release는 해당 명령 이전의 모든 메모리 명령어들이 해당 명령 이후로 재배치 되는 것을 금지
-//만약 같은 변수를 memory_order_acquire로 읽는 스레드가 있다면 memory_order_release이전에 오는 모든 메모리 명령어들이 해당 스레드에 의해 관찰 될 수 있어야함
+//만약 같은 변수를 memory_order_acquire로 읽는 스레드가 있다면 memory_order_release이전에 오는 
+//모든 메모리 명령어들이 해당 스레드에 의해 관찰 될 수 있어야함
 //memory_order_acquire 의 경우, release 와는 반대로 해당 명령 뒤에 오는 모든 메모리 명령들이 해당 명령 위로 재배치 되는 것을 금지
 ```
