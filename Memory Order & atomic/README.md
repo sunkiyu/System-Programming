@@ -85,4 +85,22 @@ b = 1 의 경우 현재 b가 캐시에 있으므로 빠르게 처리 가능.
 * memory_order_relaxed 는 CPU 에서 메모리 연산 순서에 관련해서 무한한 자유를 줌    
 * 덕분에 CPU 에서 매우 빠른 속도로 실행할 수 있음   
 
+## memory_order_acquire 과 memory_order_release
+```cpp
+*data = 10;//(1)
+is_ready->store(true, memory_order_relaxed);//(2)
+//memory_order_relaxed 이므로 (1)과 (2)가 순서가 뒤바뀔 수도 있다.   
 
+while (!is_ready->load(memory_order_relaxed)) {//(3)
+}
+
+std::cout << "Data : " << *data << std::endl; //(4)
+//memory_order_relaxed 이므로 (3)과 (4)가 순서가 뒤바뀔 수도 있다
+//따라서, 이와 같은 조직에서는 memory_order_relaxed를 사용할 수 없다.
+
+*data = 10; //(5)
+is_ready->store(true, std::memory_order_release); //(6)
+//memory_order_release는 해당 명령 이전의 모든 메모리 명령어들이 해당 명령 이후로 재배치 되는 것을 금지
+//만약 같은 변수를 memory_order_acquire로 읽는 스레드가 있다면 memory_order_release이전에 오는 모든 메모리 명령어들이 해당 스레드에 의해 관찰 될 수 있어야함
+//memory_order_acquire 의 경우, release 와는 반대로 해당 명령 뒤에 오는 모든 메모리 명령들이 해당 명령 위로 재배치 되는 것을 금지
+```
