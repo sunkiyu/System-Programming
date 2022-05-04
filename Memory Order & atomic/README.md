@@ -105,3 +105,27 @@ is_ready->store(true, std::memory_order_release); //(6)
 //모든 메모리 명령어들이 해당 스레드에 의해 관찰 될 수 있어야함
 //memory_order_acquire 의 경우, release 와는 반대로 해당 명령 뒤에 오는 모든 메모리 명령들이 해당 명령 위로 재배치 되는 것을 금지
 ```
+```cpp
+data[0].store(1, memory_order_relaxed);
+data[1].store(2, memory_order_relaxed);
+data[2].store(3, memory_order_relaxed);
+is_ready.store(true, std::memory_order_release);
+```
+* 여기서 data 의 원소들을 store 하는 명령들은 모두 relaxed 때문에 자기들 끼리는 CPU 에서 마음대로 재배치될 수 있지만   
+* 아래 release 명령을 넘어가서 재배치될 수는 없음   
+* data 들의 값을 확인했을 때 언제나 정확히 1, 2, 3 이 들어있음   
+
+## memory_order_acq_rel
+* memory_order_acq_rel는 이름에서도 알 수 있듯, acquire과 release를 모두 수행   
+* 읽기/쓰기 모두를 수행하는 명령들, 예를 들어 fetch_add와 같은 함수에서 사용될 수 있다.   
+
+## memory_order_seq_cst
+* memory_order_seq_cst 는 메모리 명령의 순차적 일관성(sequential consistency) 을 보장   
+* 즉, 메모리 명령 재배치가 없고, 모든 스레드에서 모든 시점에 동일 값을 관찰 가능한, 프로그래머가 생각하는 그대로 CPU가 동작하는 방식   
+* memory_order_seq_cst 를 사용하게 된다면, 해당 명령을 사용하는 메모리 연산들 끼리는 모든 쓰레드에서 동일한 연산 순서를 관찰할 수 있도록 보장   
+* 우리가 atomic 객체를 사용할 때, memory_order 를 지정해주지 않는다면 디폴트로 memory_order_seq_cst 가 지정.   
+* counter ++ 은 사실 counter.fetch_add(1, memory_order_seq_cst) 와 동일한 연산.
+
+## memory_order_seq_cst 는 비싼 연산!
+* 인텔 혹은 AMD 의 x86(-64) CPU 의 경우에는 사실 거의 순차적 일관성이 보장되서 memory_order_seq_cst 를 강제하더라도 그 차이가 크지 않다.   
+* ARM 계열의 CPU 와 같은 경우 순차적 일관성을 보장하기 위해서는 CPU 의 동기화 비용이 매우 크므로 꼭 필요할 경우만 사용!   
