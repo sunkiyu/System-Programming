@@ -18,3 +18,12 @@ __Parameters__
 * 영역의 크기(바이트)입니다. lpAddress 매개변수가 NULL 이면 이 값은 다음 페이지 경계로 반올림됩니다.    
 * 그렇지 않으면 할당된 페이지에는 lpAddress 에서 lpAddress + dwSize 범위의 하나 이상의 바이트를 포함하는 모든 페이지가 포함됩니다 .   
 * 즉, 페이지 경계를 가로지르는 2바이트 범위로 인해 두 페이지가 모두 할당된 영역에 포함됩니다.   
+
+```cpp
+_SYSTEM_INFO info;
+GetSystemInfo(&info);
+int granuarity = info.dwAllocationGranularity;
+
+//vitualAlloc으로 메모리를 할당받게 되면 dwAllocationGranularity의 배수(64kb)인 주소로 메모리가 반환되며 메모리 크기는 페이지 단위(약4kb)이다.
+
+```
