@@ -7,7 +7,7 @@ __LPVOID VirtualAlloc__(
    [in]           DWORD  flProtect                                                                                                      
 );                                             
                                                                                                    
-__Parameters__
+__Parameters__   
 [in, optional] lpAddress   
 
 * 할당 메모리의 시작 주소입니다. 만약 메모리가 예약되어 있다면, 할당 단위의 가장 가까운 배수로 내림합니다.   
